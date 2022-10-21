@@ -44,16 +44,54 @@
     <link rel="stylesheet" href="css/style.css">
     <script src="https://code.jquery.com/jquery-latest.js"></script>
     <script>
+        //Phân trang dạng: < ... 1  2  3 ... >
+        // Nhấn ... để cập nhật 3 số trang đến 3 trang tiếp theo hay lùi 3 trang
+        // Nhấn < lùi 1 trang
+        // Nhấn > tiến 1 trang
         $(document).ready(function () {
-            //Xử lí btn active
+            //Xử lí btn active cho btn của trang hiện tại
             <% int page1= (int) request.getAttribute("pageCurrent");%>
             var pageCurrent1 =<%=page1%>;
-            var a1 = parseInt($('#btn1').text(), 10);
-            var b1 = parseInt($('#btn2').text(), 10);
-            var c1 = parseInt($('#btn3').text(), 10);
+
             <% int total1 = (int) request.getAttribute("total");
                 int totalPage1 = (total1%24)==0? total1/24: (total1/24)+1;%>
             var quantityPage1 =<%=totalPage1%>;
+            //Tìm 3 số trang cần hiển thị ra màn hình
+
+            if ( quantityPage1==2 ){
+                $('#loadpage').prop('disable',true);
+                $('#unloadpage').prop('disable',true);
+                $('#li3').hide();
+                $('#next').prop('disable',true);;
+            }
+            if (quantityPage1==1 ){
+                $('#loadpage').hide();
+                //$('#unloadpage').hide();
+                $('#li3').hide();
+                $('#li2').hide();
+                $('#next').hide();
+            }
+            if ( quantityPage1-pageCurrent1<3){
+                var a1 = quantityPage1-2;
+                var b1 = quantityPage1-1;
+                var c1 = quantityPage1;
+            }else  if ( pageCurrent1%3==0){
+                var a1 = pageCurrent1-2;
+                var b1 = pageCurrent1-1;
+                var c1 = pageCurrent1;
+            } else  if ( pageCurrent1%3==1){
+                var a1 = pageCurrent1;
+                var b1 = pageCurrent1+1;
+                var c1 = pageCurrent1+2;
+            }else  if ( pageCurrent1%3==2){
+                var a1 = pageCurrent1-1;
+                var b1 = pageCurrent1;
+                var c1 = pageCurrent1+1;
+            }
+            $('#btn1').text(a1);
+            $('#btn2').text(b1);
+            $('#btn3').text(c1);
+
             if (a1 == pageCurrent1)
                 $('#li1').addClass("active")
 
@@ -64,24 +102,32 @@
 
             if (c1 == pageCurrent1)
                 $('#li3').addClass("active")
-                <% String p =(String) request.getAttribute("path");
-                                 String q= ProductListEntity.getQuery(request.getQueryString());
-                                 if(q!="")q="&"+q;
-                                %>
-            //Kiểm tra số nút có vượt qua tổng trang ví dụ có 2 trang nhung có 3 nut.
-            if (c1 > quantityPage1 ){
-                $('#loadpage').hide();
-                $('#unloadpage').hide();
-                $('#li3').hide();
-                $('#pre').hide();
-                $('#next').hide();
+            <% String p =(String) request.getAttribute("path");
+                             String q= ProductListEntity.getQuery(request.getQueryString());
+                             if(q!="")q="&"+q;
+                            %>
+
+            $('#btn1').attr("href", "<%=p%>?page=" + a1+"<%=request.getQueryString()==null?"":q%>")
+
+            $('#btn2').attr("href", "<%=p%>?page=" + b1+"<%=request.getQueryString()==null?"":q%>")
+
+            $('#btn3').attr("href", "<%=p%>?page=" + c1 +"<%=request.getQueryString()==null?"":q%>")
+
+//Kiểm tra số nút có vượt qua tổng trang ví dụ có 2 trang nhung có 3 nut.
+            if ( quantityPage1==2 ){
+                $('#loadpage').prop('disable',true);
+                $('#unloadpage').prop('disable',true);
+                $('#li1').hide();
+                $('#next').prop('disable',true);
+                $('#pre').prop('disable',true);
             }
-            if (b1 > quantityPage1 ){
-                $('#loadpage').hide();
-                $('#unloadpage').hide();
+            if (quantityPage1==1 ){
+                $('#loadpage').prop('disable',true);
+                $('#unloadpage').prop('disable',true);
+                $('#li1').hide();
+                $('#next').prop('disable',true);
+                $('#pre').prop('disable',true);
                 $('#li2').hide();
-                $('#pre').hide();
-                $('#next').hide();
             }
             //kiểm tra hiển thị nut ... lúc đầu load trang
 
@@ -105,6 +151,7 @@
                 var i3 = parseInt($('#btn3').text(), 10);
 
                 var quantityPage =<%=totalPage1%>
+
 
                 //Ví dụ đang là 28 29 30 và có 31 trang thì nhấn ... -> 29 30 31
                 if (quantityPage - i3 == 2 || quantityPage - i3 == 1) {
@@ -156,7 +203,7 @@
 
                 var ipage = $('#btn1').text();
                 var i1 = parseInt(ipage, 10);
-                if (i1 - 3 < 0) {
+                if (i1 - 3 <= 0) {
                     $('#unloadpage').show();
                     $('#loadpage').show();
                     $('#btn1').text(1);
@@ -346,13 +393,13 @@
 
             <c class="ps-product__columns">
                 <c:if test="${listPro != null}">
-                  <c:forEach items="${listPro}" var="p">
+                <c:forEach items="${listPro}" var="p">
                 <div class="ps-product__column">
                     <div class="ps-shoe mb-30">
                         <div class="ps-shoe__thumbnail">
                             <!-- <div class="ps-badge"><span></span></div> -->
 
-                            <c:if test="${p.priceSale!=0}">
+                            <c:if test="${p.priceSale!=0.0}">
                                 <div class="ps-badge ps-badge--sale"><span>-${p.phanTramKM*100}%</span></div>
                             </c:if>
                             <img src="${p.img}" alt=""><a class="ps-shoe__overlay"
@@ -386,15 +433,15 @@
                                 </c:if>
 
                             </div>
-                            <div class="ps-shoe__detail"><a class="ps-shoe__name" href="#">${p.name}</a>
+                            <div class="ps-shoe__detail"><a class="ps-shoe__name" href="detail?id=${p.id}">${p.name}</a>
                                 <p>RAM: ${p.ram}GB - ${p.oCung}<br/>
                                     <c:if test="${p.priceSale!=0}">
-                                        <del>${p.priceToString(p.price)}đ</del>
-                                        <strong class="price">${p.priceToString(p.priceSale)}đ</strong></p>
-                                    </c:if>
-                                    <c:if test="${p.priceSale==0}">
-                                       <strong class="price">${p.priceToString(p.price)}đ</strong></p>
-                                    </c:if>
+                                    <del>${p.priceToString(p.price)}đ</del>
+                                    <strong class="price">${p.priceToString(p.priceSale)}đ</strong></p>
+                                </c:if>
+                                <c:if test="${p.priceSale==0}">
+                                    <strong class="price">${p.priceToString(p.price)}đ</strong></p>
+                                </c:if>
                             </div>
                         </div>
                     </div>

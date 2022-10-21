@@ -1,7 +1,7 @@
 package vn.edu.nlu.entity;
 
 import vn.edu.nlu.beans.Product;
-import vn.edu.nlu.db.ConnectDB;
+import vn.edu.nlu.database.ConnectDB;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
